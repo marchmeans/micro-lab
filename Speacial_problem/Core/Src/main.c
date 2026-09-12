@@ -47,7 +47,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t adc_dma_buf[4];
+/* Rank order: 1=CH3(PA3) 2=CH9(PB1) 3=CH10(PC0) 4=CH12(PC2)
+               5=CH4(PA4) 6=CH13(PC3) 7=CH14(PC4) 8=CH15(PC5) */
+uint32_t adc_dma_buf[8];
+volatile uint32_t led_on_count = 0;
+volatile uint32_t led_off_count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,7 +102,7 @@ int main(void)
   MX_ADC1_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_ADC_Start_DMA(&hadc1, adc_dma_buf, 4);
+  HAL_ADC_Start_DMA(&hadc1, adc_dma_buf, 8);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -108,15 +112,31 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    char buf[100];
+    char buf[260];
+
     float vin_ch10 = (adc_dma_buf[2] * 3.3f) / 4095.0f;
     float vin_ch9  = (adc_dma_buf[1] * 3.3f) / 4095.0f;
-    int len = sprintf(buf, "CH3=0x%08lX CH9=0x%08lX CH10=0x%08lX CH12=0x%08lX Vin(CH10)=%.2fV Vin(CH9)=%.2fV\r\n",
-                       (unsigned long)adc_dma_buf[0],
-                       (unsigned long)adc_dma_buf[1],
-                       (unsigned long)adc_dma_buf[2],
-                       (unsigned long)adc_dma_buf[3],
-                       vin_ch10, vin_ch9);
+
+    GPIO_PinState led_state = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
+    const char *led_str = (led_state == GPIO_PIN_SET) ? "ON " : "OFF";
+
+    int len = sprintf(buf,
+        "P1[CH3=0x%08lX CH10=0x%08lX CH4=0x%08lX CH13=0x%08lX] "
+        "P2[CH9=0x%08lX CH12=0x%08lX CH14=0x%08lX CH15=0x%08lX] "
+        "Vin(CH10)=%.2fV Vin(CH9)=%.2fV LD2=%s (ON=%lu OFF=%lu)\r\n\n",
+        (unsigned long)adc_dma_buf[0],   // CH3
+        (unsigned long)adc_dma_buf[2],   // CH10
+        (unsigned long)adc_dma_buf[4],   // CH4
+        (unsigned long)adc_dma_buf[5],   // CH13
+        (unsigned long)adc_dma_buf[1],   // CH9
+        (unsigned long)adc_dma_buf[3],   // CH12
+        (unsigned long)adc_dma_buf[6],   // CH14
+        (unsigned long)adc_dma_buf[7],   // CH15
+        vin_ch10, vin_ch9,
+        led_str,
+        (unsigned long)led_on_count,
+        (unsigned long)led_off_count);
+
     HAL_UART_Transmit(&huart3, (uint8_t*)buf, len, 1000);
     HAL_Delay(400);
   }
@@ -169,11 +189,13 @@ void SystemClock_Config(void)
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
 {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);   // LD2 ติด
+    led_on_count++;
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); // LD2 ดับ
+    led_off_count++;
 }
 /* USER CODE END 4 */
 

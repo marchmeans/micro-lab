@@ -10,6 +10,7 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include Drivers/STM32F7xx_HAL_Driver/Src/subdir.mk
+-include Drivers/ILI9341/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include objects.mk
@@ -34,34 +35,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := Speacial_problem
+BUILD_ARTIFACT_NAME := lab08
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-Speacial_problem.elf \
+lab08.elf \
 
 MAP_FILES += \
-Speacial_problem.map \
+lab08.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-Speacial_problem.list \
+lab08.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: Speacial_problem.elf secondary-outputs
+main-build: lab08.elf secondary-outputs
 
 # Tool invocations
-Speacial_problem.elf Speacial_problem.map: $(OBJS) $(USER_OBJS) /Users/tripple/micro/Speacial_problem/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Speacial_problem.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/Users/tripple/micro/Speacial_problem/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Speacial_problem.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+lab08.elf lab08.map: $(OBJS) $(USER_OBJS) D:\in\microcontroller\lab08\STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "lab08.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"D:\in\microcontroller\lab08\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="lab08.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +71,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-Speacial_problem.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "Speacial_problem.list"
+lab08.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "lab08.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) Speacial_problem.elf Speacial_problem.list Speacial_problem.map default.size.stdout
+	-$(RM) default.size.stdout lab08.elf lab08.list lab08.map
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
